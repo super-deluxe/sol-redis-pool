@@ -1,4 +1,3 @@
-==============
 sol-redis-pool
 ==============
 
@@ -10,8 +9,6 @@ A simple Redis pool for node using generic-pool. There are two example included.
 
 ## Caveats
 Pull requests welcome...
-
-- When the **select** command is used after a client is acquired, the release method will not reset the client back to its origin state. You should either request the db with the **aquireDb** method or make sure you issue a **select** command before releasing the client back to the pool. 
 
 ## Constructor:  RedisPool(redis_settings, pool_settings)
 Create a new Redis connection pool.
@@ -149,6 +146,8 @@ Examples are located in the examples/ folder in the repository. These examples w
 * ping-example.js   - a simple example that issues a Redis PING command.
 
 ## History
+0.2.4 - February 24 2016
+- Added logic to acquireDb and release to detect the selected db number from the redis client. This will prevent clients with a changed DB number from being released back into the connection pool.
 
 0.2.3 - February 23 2016
 - DB selection performance fix for issues #12 & #13. (PuKoren)

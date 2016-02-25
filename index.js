@@ -100,11 +100,29 @@ RedisPool.prototype.acquire = function(cb, priority) {
 };
 
 RedisPool.prototype.acquireDb = function(cb, db, priority) {
+  var self = this; // temp
   this._pool.acquire(function(err, client) {
-    if (!err && client._db_selected !== db) {
-      client._db_selected = db;
-      client.select(db);
+
+    if(!err) {
+      // No errors, check the client state to limit the number of selects sent to the server.
+
+      // Was a select used in the past for this client?
+      if(!client.selected_db) {
+        // This client never used the select command.
+        
+        // Does the requested db equal the default?
+        if(db !== self._redis_default_db) {
+          client.select(db);
+        }
+      } else {
+        // This client did use the select command at some point.
+        if(client.selected_db !== db) {
+          client.select(db);
+        }
+      }
+
     }
+
     return cb(err, client);
   }, priority);
 };
@@ -112,10 +130,9 @@ RedisPool.prototype.acquireDb = function(cb, db, priority) {
 // Release a database connection to the pool.
 RedisPool.prototype.release = function(client) {
   var self = this;
-  // Always reset the DB to the default. This prevents issues
-  // if a user used the select command to change the DB.
-  if (client._db_selected !== self._redis_default_db) {
-    client.select(self._redis_default_db);
+  // Reset the db number if we detect a change from our default.
+  if (!client.selected_db == false && client.selected_db !== self._redis_default_db) {
+      client.select(self._redis_default_db);
   }
   this._pool.release(client);
 };
