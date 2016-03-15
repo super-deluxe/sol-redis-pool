@@ -82,7 +82,7 @@ RedisPool.prototype._initialize = function() {
   // The destroy function is called when client connection needs to be closed.
   poolSettings.destroy = function(client) {
     try {
-      client.end();
+      client.end(true);
     } catch (err) {
       return self.emit('error', 'Error destroying redis client.');
     }
